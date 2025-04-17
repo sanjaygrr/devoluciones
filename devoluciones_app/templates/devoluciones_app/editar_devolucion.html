@@ -20,6 +20,7 @@
             <div class="row">
                 <div class="col-md-6">
                     {{ form.numero_boleta|as_crispy_field }}
+                    {{ form.numero_orden|as_crispy_field }}
                     {{ form.nombre_producto|as_crispy_field }}
                     {{ form.codigo_producto|as_crispy_field }}
                     {{ form.cantidad|as_crispy_field }}
@@ -27,6 +28,7 @@
                 <div class="col-md-6">
                     {{ form.estado_devolucion|as_crispy_field }}
                     {{ form.marketplace|as_crispy_field }}
+                    {{ form.porcentaje_pago|as_crispy_field }}
                     <div id="nota_credito_container">
                         {{ form.nota_credito|as_crispy_field }}
                     </div>
@@ -37,7 +39,7 @@
             {{ form.observaciones|as_crispy_field }}
             
             <div class="d-grid gap-2 mt-3">
-                <button type="submit" class="btn btn-success">Guardar Cambios</button>
+                <button type="submit" id="submit-btn" class="btn btn-success">Guardar Cambios</button>
             </div>
         </form>
     </div>
@@ -50,18 +52,32 @@
     document.addEventListener('DOMContentLoaded', function() {
         const estadoSelect = document.getElementById('id_estado_devolucion');
         const notaCreditoContainer = document.getElementById('nota_credito_container');
+        const notaCreditoInput = document.getElementById('id_nota_credito');
+        const submitButton = document.getElementById('submit-btn');
         
         function toggleNotaCredito() {
             const estadoValue = estadoSelect.value;
+            console.log("Estado seleccionado:", estadoValue);
+            
             if (['normal', 'mal_estado'].includes(estadoValue)) {
                 notaCreditoContainer.style.display = 'block';
-                document.getElementById('id_nota_credito').required = true;
+                notaCreditoInput.setAttribute('required', 'required');
             } else {
                 notaCreditoContainer.style.display = 'none';
-                document.getElementById('id_nota_credito').required = false;
-                document.getElementById('id_nota_credito').value = '';
+                notaCreditoInput.removeAttribute('required');
+                // No limpiar el valor al cambiar estado para evitar pérdida de datos
+                // Solo limpiar si se cambia explícitamente a un estado pendiente
+                if (['pendiente_buen', 'pendiente_mal', 'otro'].includes(estadoValue)) {
+                    notaCreditoInput.value = '';
+                }
             }
         }
+        
+        // Prevenir múltiples envíos del formulario
+        document.querySelector('form').addEventListener('submit', function(event) {
+            submitButton.disabled = true;
+            submitButton.innerHTML = 'Guardando...';
+        });
         
         // Ejecutar al cargar la página
         toggleNotaCredito();

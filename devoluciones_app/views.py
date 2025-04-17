@@ -225,6 +225,12 @@ def editar_devolucion(request, pk):
             form.save()
             messages.success(request, "Devolución actualizada correctamente.")
             return redirect('historial_devoluciones')
+        else:
+            # Depuración de errores de validación
+            print("Errores de validación:", form.errors)
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{form.fields[field].label}: {error}")
     else:
         form = DevolucionForm(instance=devolucion)
     
@@ -232,7 +238,6 @@ def editar_devolucion(request, pk):
         'form': form,
         'devolucion': devolucion
     })
-
 @login_required
 def exportar_excel(request):
     """Exportar devoluciones a Excel con los mismos filtros del historial."""
