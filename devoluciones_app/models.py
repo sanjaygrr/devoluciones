@@ -12,6 +12,18 @@ class Devolucion(models.Model):
         ('otro', 'Otro'),
     ]
     
+    MARKETPLACE_CHOICES = [
+        ('', 'Seleccione marketplace'),
+        ('mercadolibre', 'Mercado Libre'),
+        ('falabella', 'Falabella'),
+        ('ripley', 'Ripley'),
+        ('walmart', 'Walmart'),
+        ('paris', 'Paris'),
+        ('shopify', 'Shopify'),
+        ('woocommerce', 'Woocommerce'),
+        ('otro', 'Otro'),
+    ]
+    
     numero_boleta = models.CharField(max_length=100, verbose_name="Número de Boleta")
     nombre_producto = models.CharField(max_length=255, verbose_name="Nombre del Producto")
     codigo_producto = models.CharField(max_length=100, blank=True, null=True, verbose_name="Código del Producto")
@@ -20,6 +32,7 @@ class Devolucion(models.Model):
     observaciones = models.TextField(blank=True, null=True, verbose_name="Observaciones")
     
     # Nuevos campos
+    marketplace = models.CharField(max_length=50, choices=MARKETPLACE_CHOICES, blank=True, null=True, verbose_name="Marketplace")
     nota_credito = models.CharField(max_length=100, blank=True, null=True, verbose_name="Número de Nota de Crédito")
     fecha_registro = models.DateTimeField(default=timezone.now, verbose_name="Fecha de Registro")
     fecha_devolucion = models.DateField(default=timezone.now, verbose_name="Fecha de Devolución")

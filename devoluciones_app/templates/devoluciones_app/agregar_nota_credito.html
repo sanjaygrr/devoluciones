@@ -35,6 +35,7 @@
                         <span class="badge bg-secondary">Otro</span>
                     {% endif %}
                 </li>
+                <li class="list-group-item"><strong>Marketplace:</strong> {{ devolucion.get_marketplace_display|default:"-" }}</li>
                 <li class="list-group-item"><strong>Fecha devolución:</strong> {{ devolucion.fecha_devolucion|date:"d/m/Y" }}</li>
             </ul>
         </div>

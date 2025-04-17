@@ -153,6 +153,10 @@ def historial_devoluciones(request):
         if form.cleaned_data.get('estado'):
             devoluciones = devoluciones.filter(estado_devolucion=form.cleaned_data['estado'])
         
+        # Filtrar por marketplace
+        if form.cleaned_data.get('marketplace'):
+            devoluciones = devoluciones.filter(marketplace=form.cleaned_data['marketplace'])
+        
         # Filtrar por pendiente/completado
         if form.cleaned_data.get('pendiente') == 'si':
             devoluciones = devoluciones.filter(nota_credito__isnull=True)
@@ -235,6 +239,9 @@ def exportar_excel(request):
         if form.cleaned_data.get('estado'):
             devoluciones = devoluciones.filter(estado_devolucion=form.cleaned_data['estado'])
         
+        if form.cleaned_data.get('marketplace'):
+            devoluciones = devoluciones.filter(marketplace=form.cleaned_data['marketplace'])
+        
         if form.cleaned_data.get('pendiente') == 'si':
             devoluciones = devoluciones.filter(nota_credito__isnull=True)
         elif form.cleaned_data.get('pendiente') == 'no':
@@ -263,7 +270,7 @@ def exportar_excel(request):
     # Encabezados
     columns = [
         'ID', 'Número Boleta', 'Producto', 'Código', 'Cantidad', 
-        'Estado', 'Nota de Crédito', 'Observaciones',
+        'Estado', 'Marketplace', 'Nota de Crédito', 'Observaciones',
         'Fecha Devolución', 'Fecha Registro', 'Fecha Cierre'
     ]
     
@@ -274,8 +281,8 @@ def exportar_excel(request):
     font_style = xlwt.XFStyle()
     rows = devoluciones.values_list(
         'id', 'numero_boleta', 'nombre_producto', 'codigo_producto', 
-        'cantidad', 'estado_devolucion', 'nota_credito', 'observaciones',
-        'fecha_devolucion', 'fecha_registro', 'fecha_cierre'
+        'cantidad', 'estado_devolucion', 'marketplace', 'nota_credito', 
+        'observaciones', 'fecha_devolucion', 'fecha_registro', 'fecha_cierre'
     )
     
     for row_num, row in enumerate(rows, 1):
@@ -288,6 +295,10 @@ def exportar_excel(request):
                 # Convertir código de estado a texto legible
                 estados = dict(Devolucion.ESTADO_CHOICES)
                 cell_value = estados.get(cell_value, cell_value)
+            elif col_num == 6:  # Marketplace
+                # Convertir código de marketplace a texto legible
+                marketplaces = dict(Devolucion.MARKETPLACE_CHOICES)
+                cell_value = marketplaces.get(cell_value, cell_value)
                 
             ws.write(row_num, col_num, str(cell_value) if cell_value is not None else "", font_style)
     

@@ -19,7 +19,7 @@ class DevolucionForm(forms.ModelForm):
         model = Devolucion
         fields = [
             'numero_boleta', 'nombre_producto', 'codigo_producto', 
-            'cantidad', 'estado_devolucion', 'observaciones', 
+            'cantidad', 'estado_devolucion', 'marketplace', 'observaciones', 
             'fecha_devolucion', 'nota_credito'
         ]
         widgets = {
@@ -28,6 +28,7 @@ class DevolucionForm(forms.ModelForm):
             'codigo_producto': forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
             'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
             'estado_devolucion': forms.Select(attrs={'class': 'form-control', 'id': 'id_estado_devolucion'}),
+            'marketplace': forms.Select(attrs={'class': 'form-control'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'fecha_devolucion': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'nota_credito': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_nota_credito'}),
@@ -60,6 +61,11 @@ class FiltroDevolucionesForm(forms.Form):
     )
     estado = forms.ChoiceField(
         choices=[('', 'Todos')] + Devolucion.ESTADO_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    marketplace = forms.ChoiceField(
+        choices=[('', 'Todos')] + Devolucion.MARKETPLACE_CHOICES[1:],  # Excluir la primera opción "Seleccione marketplace"
         required=False,
         widget=forms.Select(attrs={'class': 'form-control'})
     )

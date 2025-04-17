@@ -24,13 +24,16 @@
         <!-- Filtros -->
         <form method="get" class="mb-4">
             <div class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     {{ form.busqueda|as_crispy_field }}
                 </div>
                 <div class="col-md-2">
                     {{ form.estado|as_crispy_field }}
                 </div>
                 <div class="col-md-2">
+                    {{ form.marketplace|as_crispy_field }}
+                </div>
+                <div class="col-md-1">
                     {{ form.pendiente|as_crispy_field }}
                 </div>
                 <div class="col-md-2">
@@ -65,6 +68,7 @@
                             <th>Producto</th>
                             <th>Cantidad</th>
                             <th>Estado</th>
+                            <th>Marketplace</th>
                             <th>Nota de Crédito</th>
                             <th>Fecha Devolución</th>
                             <th>Fecha Registro</th>
@@ -92,6 +96,13 @@
                                     {% endif %}
                                 </td>
                                 <td>
+                                    {% if devolucion.marketplace %}
+                                        {{ devolucion.get_marketplace_display }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
                                     {% if devolucion.nota_credito %}
                                         <span class="text-success">
                                             <i class="fas fa-check-circle me-1"></i>{{ devolucion.nota_credito }}
@@ -100,15 +111,6 @@
                                         <span class="text-warning">
                                             <i class="fas fa-clock me-1"></i>Pendiente
                                         </span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ devolucion.fecha_devolucion|date:"d/m/Y" }}</td>
-                                <td>{{ devolucion.fecha_registro|date:"d/m/Y H:i" }}</td>
-                                <td>
-                                    {% if devolucion.fecha_cierre %}
-                                        {{ devolucion.fecha_cierre|date:"d/m/Y H:i" }}
-                                    {% else %}
-                                        <span class="text-muted">Pendiente</span>
                                     {% endif %}
                                 </td>
                                 <td>
