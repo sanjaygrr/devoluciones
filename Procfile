@@ -1,0 +1,1 @@
+web: gunicorn devoluciones_project.wsgi --log-file -
