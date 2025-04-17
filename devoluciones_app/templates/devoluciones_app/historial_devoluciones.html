@@ -65,10 +65,13 @@
                     <thead class="table-light">
                         <tr>
                             <th>Boleta</th>
+                            <th>N° Orden</th>
                             <th>Producto</th>
                             <th>Cantidad</th>
                             <th>Estado</th>
                             <th>Marketplace</th>
+                            <th>% Pago</th>
+                            <th>Registrado por</th>
                             <th>Nota de Crédito</th>
                             <th>Fecha Devolución</th>
                             <th>Fecha Registro</th>
@@ -80,6 +83,7 @@
                         {% for devolucion in devoluciones %}
                             <tr>
                                 <td>{{ devolucion.numero_boleta }}</td>
+                                <td>{{ devolucion.numero_orden|default:"-" }}</td>
                                 <td>{{ devolucion.nombre_producto }}</td>
                                 <td>{{ devolucion.cantidad }}</td>
                                 <td>
@@ -91,6 +95,8 @@
                                         <span class="badge bg-warning">Pendiente (buen estado)</span>
                                     {% elif devolucion.estado_devolucion == 'pendiente_mal' %}
                                         <span class="badge bg-warning text-dark">Pendiente (mal estado)</span>
+                                    {% elif devolucion.estado_devolucion == 'extraviado' %}
+                                        <span class="badge bg-dark">Extraviado</span>
                                     {% else %}
                                         <span class="badge bg-secondary">Otro</span>
                                     {% endif %}
@@ -102,6 +108,8 @@
                                         <span class="text-muted">-</span>
                                     {% endif %}
                                 </td>
+                                <td>{{ devolucion.porcentaje_pago }}%</td>
+                                <td>{{ devolucion.usuario_registro.username|default:"-" }}</td>
                                 <td>
                                     {% if devolucion.nota_credito %}
                                         <span class="text-success">

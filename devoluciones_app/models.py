@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 class Devolucion(models.Model):
     """Modelo para registrar devoluciones de productos."""
@@ -9,6 +10,7 @@ class Devolucion(models.Model):
         ('mal_estado', 'Devolución (mal estado)'),
         ('pendiente_buen', 'Pendiente (buen estado)'),
         ('pendiente_mal', 'Pendiente (mal estado)'),
+        ('extraviado', 'Extraviado'),
         ('otro', 'Otro'),
     ]
     
@@ -25,6 +27,7 @@ class Devolucion(models.Model):
     ]
     
     numero_boleta = models.CharField(max_length=100, verbose_name="Número de Boleta")
+    numero_orden = models.CharField(max_length=100, blank=True, null=True, verbose_name="Número de Orden")
     nombre_producto = models.CharField(max_length=255, verbose_name="Nombre del Producto")
     codigo_producto = models.CharField(max_length=100, blank=True, null=True, verbose_name="Código del Producto")
     cantidad = models.PositiveIntegerField(default=1, verbose_name="Cantidad")
@@ -34,6 +37,10 @@ class Devolucion(models.Model):
     # Nuevos campos
     marketplace = models.CharField(max_length=50, choices=MARKETPLACE_CHOICES, blank=True, null=True, verbose_name="Marketplace")
     nota_credito = models.CharField(max_length=100, blank=True, null=True, verbose_name="Número de Nota de Crédito")
+    porcentaje_pago = models.DecimalField(max_digits=5, decimal_places=2, default=100.00, verbose_name="Porcentaje de Pago")
+    usuario_registro = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Registrado por")
+    
+    # Campos de fechas
     fecha_registro = models.DateTimeField(default=timezone.now, verbose_name="Fecha de Registro")
     fecha_devolucion = models.DateField(default=timezone.now, verbose_name="Fecha de Devolución")
     fecha_cierre = models.DateTimeField(blank=True, null=True, verbose_name="Fecha de Cierre")

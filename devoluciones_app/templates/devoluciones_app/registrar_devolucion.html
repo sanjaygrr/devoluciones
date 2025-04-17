@@ -30,6 +30,7 @@
             <div class="row">
                 <div class="col-md-6">
                     {{ form.numero_boleta|as_crispy_field }}
+                    {{ form.numero_orden|as_crispy_field }}
                     {{ form.nombre_producto|as_crispy_field }}
                     {{ form.codigo_producto|as_crispy_field }}
                     {{ form.cantidad|as_crispy_field }}
@@ -37,6 +38,7 @@
                 <div class="col-md-6">
                     {{ form.estado_devolucion|as_crispy_field }}
                     {{ form.marketplace|as_crispy_field }}
+                    {{ form.porcentaje_pago|as_crispy_field }}
                     <div id="nota_credito_container">
                         {{ form.nota_credito|as_crispy_field }}
                     </div>

@@ -101,10 +101,20 @@ def registrar_devolucion(request, numero_boleta, id_producto):
         messages.error(request, "No se encontró el producto seleccionado.")
         return redirect('index')
     
+    # Buscar el número de orden en el documento
+    numero_orden = ""
+    if "references" in resultado["items"][0] and "items" in resultado["items"][0]["references"]:
+        for ref in resultado["items"][0]["references"]["items"]:
+            if ref.get("reason") == "Orden de Compra":
+                numero_orden = ref.get("number", "")
+                break
+    
     if request.method == 'POST':
         form = DevolucionForm(request.POST)
         if form.is_valid():
             devolucion = form.save(commit=False)
+            # Asignar el usuario actual
+            devolucion.usuario_registro = request.user
             # Si el estado es normal o mal_estado, se guarda con fecha de cierre
             if devolucion.estado_devolucion in ['normal', 'mal_estado']:
                 devolucion.fecha_cierre = timezone.now()
@@ -119,10 +129,12 @@ def registrar_devolucion(request, numero_boleta, id_producto):
         # Inicializar formulario con datos del producto
         initial_data = {
             'numero_boleta': numero_boleta,
+            'numero_orden': numero_orden,  # Asignar el número de orden encontrado
             'nombre_producto': producto['descripcion'],
             'codigo_producto': producto['codigo'],
             'cantidad': 1,  # Default a 1 unidad
             'fecha_devolucion': timezone.now().date(),
+            'porcentaje_pago': 100.00,  # Valor predeterminado
         }
         form = DevolucionForm(initial=initial_data)
         # Limitar la cantidad máxima al total disponible

@@ -18,17 +18,19 @@ class DevolucionForm(forms.ModelForm):
     class Meta:
         model = Devolucion
         fields = [
-            'numero_boleta', 'nombre_producto', 'codigo_producto', 
-            'cantidad', 'estado_devolucion', 'marketplace', 'observaciones', 
-            'fecha_devolucion', 'nota_credito'
-        ]
+            'numero_boleta', 'numero_orden', 'nombre_producto', 'codigo_producto', 
+            'cantidad', 'estado_devolucion', 'marketplace', 'porcentaje_pago', 
+            'observaciones', 'fecha_devolucion', 'nota_credito'
+        ]  # El campo usuario_registro se asigna automáticamente
         widgets = {
             'numero_boleta': forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
+            'numero_orden': forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
             'nombre_producto': forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
             'codigo_producto': forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
             'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
             'estado_devolucion': forms.Select(attrs={'class': 'form-control', 'id': 'id_estado_devolucion'}),
             'marketplace': forms.Select(attrs={'class': 'form-control'}),
+            'porcentaje_pago': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 100, 'step': '0.01'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'fecha_devolucion': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'nota_credito': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_nota_credito'}),
