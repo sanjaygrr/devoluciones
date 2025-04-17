@@ -9,4 +9,5 @@ urlpatterns = [
     path('editar/<int:pk>/', views.editar_devolucion, name='editar_devolucion'),
     path('nota-credito/<int:pk>/', views.agregar_nota_credito, name='agregar_nota_credito'),
     path('exportar/', views.exportar_excel, name='exportar_excel'),
+    path('fix-database/', views.fix_database, name='fix_database'),
 ]

@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.http import HttpResponse
 from django.db.models import Q
+from django.db import connection
 import xlwt
 import datetime
 
@@ -304,3 +305,28 @@ def exportar_excel(request):
     
     wb.save(response)
     return response
+
+@login_required
+def fix_database(request):
+    """Vista temporal para arreglar la base de datos."""
+    try:
+        with connection.cursor() as cursor:
+            # Intentar agregar la columna marketplace
+            try:
+                cursor.execute("ALTER TABLE devoluciones_app_devolucion ADD COLUMN marketplace varchar(50) NULL;")
+                resultado = "Columna marketplace agregada correctamente"
+            except Exception as e:
+                resultado = f"Error al agregar columna: {str(e)}"
+            
+            # Verificar todas las columnas para diagnóstico
+            cursor.execute("PRAGMA table_info(devoluciones_app_devolucion);")
+            columnas = cursor.fetchall()
+            nombres_columnas = [col[1] for col in columnas]
+            
+            resultado += "<br><br>Columnas en la tabla:<br>"
+            for nombre in nombres_columnas:
+                resultado += f"- {nombre}<br>"
+                
+        return HttpResponse(f"<h1>Resultado:</h1><p>{resultado}</p>")
+    except Exception as e:
+        return HttpResponse(f"<h1>Error general:</h1><p>{str(e)}</p>")
