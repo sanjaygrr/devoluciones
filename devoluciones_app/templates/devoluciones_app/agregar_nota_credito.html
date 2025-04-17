@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Agregar Nota de Crédito - Sistema de Devoluciones{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'historial_devoluciones' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Volver al Historial
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Agregar Nota de Crédito</h4>
+    </div>
+    <div class="card-body">
+        <div class="mb-4">
+            <h5>Información de la devolución:</h5>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>Boleta:</strong> {{ devolucion.numero_boleta }}</li>
+                <li class="list-group-item"><strong>Producto:</strong> {{ devolucion.nombre_producto }}</li>
+                <li class="list-group-item"><strong>Cantidad:</strong> {{ devolucion.cantidad }}</li>
+                <li class="list-group-item">
+                    <strong>Estado:</strong> 
+                    {% if devolucion.estado_devolucion == 'normal' %}
+                        <span class="badge bg-success">Normal (buen estado)</span>
+                    {% elif devolucion.estado_devolucion == 'mal_estado' %}
+                        <span class="badge bg-danger">Devolución (mal estado)</span>
+                    {% elif devolucion.estado_devolucion == 'pendiente_buen' %}
+                        <span class="badge bg-warning">Pendiente (buen estado)</span>
+                    {% elif devolucion.estado_devolucion == 'pendiente_mal' %}
+                        <span class="badge bg-warning text-dark">Pendiente (mal estado)</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Otro</span>
+                    {% endif %}
+                </li>
+                <li class="list-group-item"><strong>Fecha devolución:</strong> {{ devolucion.fecha_devolucion|date:"d/m/Y" }}</li>
+            </ul>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <div class="d-grid gap-2 mt-3">
+                <button type="submit" class="btn btn-success">Guardar Nota de Crédito</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Historial de Devoluciones - Sistema de Devoluciones{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'index' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Volver a la búsqueda
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">
+            <i class="fas fa-history me-2"></i>Historial de Devoluciones
+        </h4>
+    </div>
+    <div class="card-body">
+        <!-- Filtros -->
+        <form method="get" class="mb-4">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    {{ form.busqueda|as_crispy_field }}
+                </div>
+                <div class="col-md-2">
+                    {{ form.estado|as_crispy_field }}
+                </div>
+                <div class="col-md-2">
+                    {{ form.pendiente|as_crispy_field }}
+                </div>
+                <div class="col-md-2">
+                    {{ form.fecha_desde|as_crispy_field }}
+                </div>
+                <div class="col-md-2">
+                    {{ form.fecha_hasta|as_crispy_field }}
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter me-2"></i>Filtrar
+                    </button>
+                    <a href="{% url 'historial_devoluciones' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-eraser me-2"></i>Limpiar
+                    </a>
+                    <a href="{% url 'exportar_excel' %}?{{ request.GET.urlencode }}" class="btn btn-success float-end">
+                        <i class="fas fa-file-excel me-2"></i>Exportar a Excel
+                    </a>
+                </div>
+            </div>
+        </form>
+        
+        <!-- Tabla de devoluciones -->
+        {% if devoluciones %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Boleta</th>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Estado</th>
+                            <th>Nota de Crédito</th>
+                            <th>Fecha Devolución</th>
+                            <th>Fecha Registro</th>
+                            <th>Fecha Cierre</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for devolucion in devoluciones %}
+                            <tr>
+                                <td>{{ devolucion.numero_boleta }}</td>
+                                <td>{{ devolucion.nombre_producto }}</td>
+                                <td>{{ devolucion.cantidad }}</td>
+                                <td>
+                                    {% if devolucion.estado_devolucion == 'normal' %}
+                                        <span class="badge bg-success">Normal (buen estado)</span>
+                                    {% elif devolucion.estado_devolucion == 'mal_estado' %}
+                                        <span class="badge bg-danger">Devolución (mal estado)</span>
+                                    {% elif devolucion.estado_devolucion == 'pendiente_buen' %}
+                                        <span class="badge bg-warning">Pendiente (buen estado)</span>
+                                    {% elif devolucion.estado_devolucion == 'pendiente_mal' %}
+                                        <span class="badge bg-warning text-dark">Pendiente (mal estado)</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Otro</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if devolucion.nota_credito %}
+                                        <span class="text-success">
+                                            <i class="fas fa-check-circle me-1"></i>{{ devolucion.nota_credito }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-warning">
+                                            <i class="fas fa-clock me-1"></i>Pendiente
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ devolucion.fecha_devolucion|date:"d/m/Y" }}</td>
+                                <td>{{ devolucion.fecha_registro|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    {% if devolucion.fecha_cierre %}
+                                        {{ devolucion.fecha_cierre|date:"d/m/Y H:i" }}
+                                    {% else %}
+                                        <span class="text-muted">Pendiente</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{% url 'editar_devolucion' pk=devolucion.id %}" 
+                                           class="btn btn-sm btn-info" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% if not devolucion.nota_credito and devolucion.estado_pendiente %}
+                                            <a href="{% url 'agregar_nota_credito' pk=devolucion.id %}" 
+                                               class="btn btn-sm btn-success" title="Agregar Nota de Crédito">
+                                                <i class="fas fa-receipt"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>No hay devoluciones registradas con los filtros seleccionados.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

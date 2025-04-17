@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Resultados de Búsqueda - Sistema de Devoluciones{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'index' %}" class="btn btn-secondary">
+        Volver a la búsqueda
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Resultados de Búsqueda - Boleta {{ documento.numero_boleta }}</h4>
+    </div>
+    <div class="card-body">
+        {% if documento.cliente %}
+            <div class="mb-3">
+                <strong>Cliente:</strong> {{ documento.cliente }}
+            </div>
+        {% endif %}
+        
+        <h5 class="mb-3">Productos:</h5>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Código</th>
+                        <th>Descripción</th>
+                        <th>Cantidad</th>
+                        <th>Precio</th>
+                        <th>Total</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in documento.productos %}
+                        <tr>
+                            <td>{{ producto.codigo }}</td>
+                            <td>{{ producto.descripcion }}</td>
+                            <td>{{ producto.cantidad }}</td>
+                            <td>${{ producto.precio_unitario }}</td>
+                            <td>${{ producto.total }}</td>
+                            <td>
+                                <a href="{% url 'registrar_devolucion' numero_boleta=documento.numero_boleta id_producto=producto.id %}" 
+                                   class="btn btn-sm btn-primary">
+                                    Devolver
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

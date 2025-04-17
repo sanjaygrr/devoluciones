@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Buscar Boleta - Sistema de Devoluciones{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Buscar Boleta</h4>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'buscar_boleta' %}">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <div class="d-grid gap-2 mt-3">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0">Instrucciones</h5>
+    </div>
+    <div class="card-body">
+        <ol class="mb-0">
+            <li>Ingrese el número de boleta en el campo de arriba.</li>
+            <li>Presione el botón "Buscar" para encontrar la boleta.</li>
+            <li>Seleccione el producto que desea devolver.</li>
+            <li>Complete el formulario de devolución con la información requerida.</li>
+            <li>Para ver todas las devoluciones registradas, vaya a "Historial".</li>
+        </ol>
+    </div>
+</div>
+
+<div class="d-grid gap-2 mt-4">
+    <a href="{% url 'historial_devoluciones' %}" class="btn btn-secondary">
+        Ver Historial de Devoluciones
+    </a>
+</div>
+{% endblock %}

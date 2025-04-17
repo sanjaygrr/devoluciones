@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Editar Devolución - Sistema de Devoluciones{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'historial_devoluciones' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Volver al Historial
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Editar Devolución - Boleta {{ devolucion.numero_boleta }}</h4>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form.numero_boleta|as_crispy_field }}
+                    {{ form.nombre_producto|as_crispy_field }}
+                    {{ form.codigo_producto|as_crispy_field }}
+                    {{ form.cantidad|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.estado_devolucion|as_crispy_field }}
+                    <div id="nota_credito_container">
+                        {{ form.nota_credito|as_crispy_field }}
+                    </div>
+                    {{ form.fecha_devolucion|as_crispy_field }}
+                </div>
+            </div>
+            
+            {{ form.observaciones|as_crispy_field }}
+            
+            <div class="d-grid gap-2 mt-3">
+                <button type="submit" class="btn btn-success">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Script para mostrar/ocultar campo nota_credito según el estado
+    document.addEventListener('DOMContentLoaded', function() {
+        const estadoSelect = document.getElementById('id_estado_devolucion');
+        const notaCreditoContainer = document.getElementById('nota_credito_container');
+        
+        function toggleNotaCredito() {
+            const estadoValue = estadoSelect.value;
+            if (['normal', 'mal_estado'].includes(estadoValue)) {
+                notaCreditoContainer.style.display = 'block';
+                document.getElementById('id_nota_credito').required = true;
+            } else {
+                notaCreditoContainer.style.display = 'none';
+                document.getElementById('id_nota_credito').required = false;
+                document.getElementById('id_nota_credito').value = '';
+            }
+        }
+        
+        // Ejecutar al cargar la página
+        toggleNotaCredito();
+        
+        // Ejecutar cuando cambie el select
+        estadoSelect.addEventListener('change', toggleNotaCredito);
+    });
+</script>
+{% endblock %}
