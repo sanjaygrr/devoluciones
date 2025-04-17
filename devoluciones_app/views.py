@@ -30,21 +30,39 @@ def buscar_boleta(request):
     
     numero_boleta = form.cleaned_data['numero_boleta']
     
+    # Logs para depuración
+    print(f"Buscando boleta: {numero_boleta}")
+    
     # Conectar con la API de Bsale
     bsale_api = BsaleAPI()
-    resultado = bsale_api.buscar_por_numero_boleta(numero_boleta)
     
-    if not resultado or "items" not in resultado or not resultado["items"]:
-        messages.warning(request, "No se encontraron resultados para la boleta ingresada.")
+    # Verificar token antes de la búsqueda
+    print(f"Token API configurado: {bsale_api.api_token[:5]}...{bsale_api.api_token[-5:] if bsale_api.api_token else 'No configurado'}")
+    print(f"Base URL configurada: {bsale_api.base_url}")
+    
+    try:
+        resultado = bsale_api.buscar_por_numero_boleta(numero_boleta)
+        
+        # Log del resultado para depuración
+        print(f"Resultado API: {resultado is not None}")
+        if resultado:
+            print(f"Items en resultado: {len(resultado.get('items', []))}")
+        
+        if not resultado or "items" not in resultado or not resultado["items"]:
+            messages.warning(request, "No se encontraron resultados para la boleta ingresada.")
+            return redirect('index')
+        
+        # Procesar el primer documento encontrado
+        documento = bsale_api.procesar_documento(resultado["items"][0])
+        
+        return render(request, 'devoluciones_app/resultados_busqueda.html', {
+            'documento': documento,
+            'form': form
+        })
+    except Exception as e:
+        print(f"Error al buscar boleta: {str(e)}")
+        messages.error(request, f"Error al buscar la boleta: {str(e)}")
         return redirect('index')
-    
-    # Procesar el primer documento encontrado
-    documento = bsale_api.procesar_documento(resultado["items"][0])
-    
-    return render(request, 'devoluciones_app/resultados_busqueda.html', {
-        'documento': documento,
-        'form': form
-    })
 
 @login_required
 def registrar_devolucion(request, numero_boleta, id_producto):
