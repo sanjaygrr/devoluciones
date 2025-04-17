@@ -36,9 +36,21 @@ def buscar_boleta(request):
     # Conectar con la API de Bsale
     bsale_api = BsaleAPI()
     
-    # Verificar token antes de la búsqueda
-    print(f"Token API configurado: {bsale_api.api_token[:5]}...{bsale_api.api_token[-5:] if bsale_api.api_token else 'No configurado'}")
+    # Verificar token antes de la búsqueda de forma segura
+    token_display = "No configurado"
+    if bsale_api.api_token:
+        if len(bsale_api.api_token) > 10:
+            token_display = f"{bsale_api.api_token[:5]}...{bsale_api.api_token[-5:]}"
+        else:
+            token_display = "[Token demasiado corto]"
+    
+    print(f"Token API configurado: {token_display}")
     print(f"Base URL configurada: {bsale_api.base_url}")
+    
+    # Verificar si el token está configurado
+    if not bsale_api.api_token:
+        messages.error(request, "Error de configuración: No se ha configurado el token de API. Contacte al administrador.")
+        return redirect('index')
     
     try:
         resultado = bsale_api.buscar_por_numero_boleta(numero_boleta)
