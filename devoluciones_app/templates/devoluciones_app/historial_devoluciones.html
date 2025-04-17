@@ -113,6 +113,15 @@
                                         </span>
                                     {% endif %}
                                 </td>
+                                <td>{{ devolucion.fecha_devolucion|date:"d/m/Y" }}</td>
+                                <td>{{ devolucion.fecha_registro|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    {% if devolucion.fecha_cierre %}
+                                        {{ devolucion.fecha_cierre|date:"d/m/Y H:i" }}
+                                    {% else %}
+                                        <span class="text-muted">Pendiente</span>
+                                    {% endif %}
+                                </td>
                                 <td>
                                     <div class="btn-group">
                                         <a href="{% url 'editar_devolucion' pk=devolucion.id %}" 
