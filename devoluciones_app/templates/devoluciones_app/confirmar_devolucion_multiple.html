@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Confirmar Devoluciones - Sistema de Devoluciones{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'index' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Volver a la búsqueda
+    </a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Confirmar Devoluciones - Boleta {{ numero_boleta }}</h4>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Campos comunes para todos los productos -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Datos comunes para todas las devoluciones</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="common_marketplace" class="form-label">Marketplace</label>
+                                <select id="common_marketplace" class="form-control" onchange="applyToAll('marketplace')">
+                                    <option value="">Seleccione marketplace</option>
+                                    <option value="mercadolibre">Mercado Libre</option>
+                                    <option value="falabella">Falabella</option>
+                                    <option value="ripley">Ripley</option>
+                                    <option value="walmart">Walmart</option>
+                                    <option value="paris">Paris</option>
+                                    <option value="shopify">Shopify</option>
+                                    <option value="woocommerce">Woocommerce</option>
+                                    <option value="otro">Otro</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="common_estado" class="form-label">Estado de la devolución</label>
+                                <select id="common_estado" class="form-control" onchange="applyToAll('estado')">
+                                    <option value="">Seleccione estado</option>
+                                    <option value="normal">Normal (buen estado)</option>
+                                    <option value="mal_estado">Devolución (mal estado)</option>
+                                    <option value="pendiente_buen">Pendiente (buen estado)</option>
+                                    <option value="pendiente_mal">Pendiente (mal estado)</option>
+                                    <option value="extraviado">Extraviado</option>
+                                    <option value="otro">Otro</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="common_fecha" class="form-label">Fecha de devolución</label>
+                                <input type="date" id="common_fecha" class="form-control" value="{{ today|date:'Y-m-d' }}" onchange="applyToAll('fecha')">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="common_porcentaje" class="form-label">Porcentaje de pago</label>
+                                <input type="number" id="common_porcentaje" class="form-control" min="0" max="100" step="0.01" value="100.00" onchange="applyToAll('porcentaje')">
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="mb-3" id="common_nota_credito_container" style="display: none;">
+                                <label for="common_nota_credito" class="form-label">Nota de crédito</label>
+                                <input type="text" id="common_nota_credito" class="form-control" onchange="applyToAll('nota_credito')">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Lista de productos a devolver -->
+            <h5 class="mb-3">Productos seleccionados:</h5>
+            
+            {% for producto in productos %}
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Producto {{ forloop.counter }}: {{ producto.descripcion }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <ul class="list-group">
+                                <li class="list-group-item"><strong>Código:</strong> {{ producto.codigo }}</li>
+                                <li class="list-group-item"><strong>Precio:</strong> ${{ producto.precio_unitario }}</li>
+                                <li class="list-group-item"><strong>Cantidad disponible:</strong> {{ producto.cantidad }}</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <input type="hidden" name="producto_{{ forloop.counter0 }}-numero_boleta" value="{{ numero_boleta }}">
+                                <input type="hidden" name="producto_{{ forloop.counter0 }}-numero_orden" value="{{ producto.numero_orden }}">
+                                <input type="hidden" name="producto_{{ forloop.counter0 }}-nombre_producto" value="{{ producto.descripcion }}">
+                                <input type="hidden" name="producto_{{ forloop.counter0 }}-codigo_producto" value="{{ producto.codigo }}">
+                                
+                                <div class="mb-3">
+                                    <label for="producto_{{ forloop.counter0 }}-cantidad" class="form-label">Cantidad a devolver</label>
+                                    <input type="number" name="producto_{{ forloop.counter0 }}-cantidad" id="producto_{{ forloop.counter0 }}-cantidad" 
+                                           class="form-control" min="1" max="{{ producto.cantidad }}" value="1" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="producto_{{ forloop.counter0 }}-estado_devolucion" class="form-label">Estado de la devolución</label>
+                                    <select name="producto_{{ forloop.counter0 }}-estado_devolucion" id="producto_{{ forloop.counter0 }}-estado_devolucion" 
+                                            class="form-control estado-select" data-index="{{ forloop.counter0 }}" required>
+                                        <option value="">Seleccione estado</option>
+                                        <option value="normal">Normal (buen estado)</option>
+                                        <option value="mal_estado">Devolución (mal estado)</option>
+                                        <option value="pendiente_buen">Pendiente (buen estado)</option>
+                                        <option value="pendiente_mal">Pendiente (mal estado)</option>
+                                        <option value="extraviado">Extraviado</option>
+                                        <option value="otro">Otro</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="producto_{{ forloop.counter0 }}-marketplace" class="form-label">Marketplace</label>
+                                    <select name="producto_{{ forloop.counter0 }}-marketplace" id="producto_{{ forloop.counter0 }}-marketplace" 
+                                            class="form-control marketplace-select" required>
+                                        <option value="">Seleccione marketplace</option>
+                                        <option value="mercadolibre">Mercado Libre</option>
+                                        <option value="falabella">Falabella</option>
+                                        <option value="ripley">Ripley</option>
+                                        <option value="walmart">Walmart</option>
+                                        <option value="paris">Paris</option>
+                                        <option value="shopify">Shopify</option>
+                                        <option value="woocommerce">Woocommerce</option>
+                                        <option value="otro">Otro</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="producto_{{ forloop.counter0 }}-porcentaje_pago" class="form-label">Porcentaje de pago</label>
+                                    <input type="number" name="producto_{{ forloop.counter0 }}-porcentaje_pago" id="producto_{{ forloop.counter0 }}-porcentaje_pago" 
+                                           class="form-control porcentaje-input" min="0" max="100" step="0.01" value="100.00" required>
+                                </div>
+                                
+                                <div class="mb-3 nota-credito-container" id="nota_credito_container_{{ forloop.counter0 }}" style="display: none;">
+                                    <label for="producto_{{ forloop.counter0 }}-nota_credito" class="form-label">Nota de crédito</label>
+                                    <input type="text" name="producto_{{ forloop.counter0 }}-nota_credito" id="producto_{{ forloop.counter0 }}-nota_credito" 
+                                           class="form-control nota-credito-input">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="producto_{{ forloop.counter0 }}-observaciones" class="form-label">Observaciones</label>
+                            <textarea name="producto_{{ forloop.counter0 }}-observaciones" id="producto_{{ forloop.counter0 }}-observaciones" 
+                                      class="form-control" rows="2"></textarea>
+                        </div>
+                        
+                        <input type="hidden" name="producto_{{ forloop.counter0 }}-fecha_devolucion" id="producto_{{ forloop.counter0 }}-fecha_devolucion" 
+                               class="fecha-input" value="{{ today|date:'Y-m-d' }}">
+                    </div>
+                </div>
+            {% endfor %}
+            
+            <div class="d-grid gap-2 mt-4">
+                <button type="submit" id="submit-btn" class="btn btn-success">
+                    <i class="fas fa-save me-2"></i>Registrar Todas las Devoluciones
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const estadoSelects = document.querySelectorAll('.estado-select');
+        const submitButton = document.getElementById('submit-btn');
+        const commonEstadoSelect = document.getElementById('common_estado');
+        const commonNotaCreditoContainer = document.getElementById('common_nota_credito_container');
+        
+        // Establecer la fecha actual en todos los campos de fecha si no tienen valor
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const dateString = `${year}-${month}-${day}`;
+        
+        document.querySelectorAll('.fecha-input').forEach(input => {
+            if (!input.value) {
+                input.value = dateString;
+            }
+        });
+        
+        // Función para aplicar un valor a todos los campos del mismo tipo
+        window.applyToAll = function(fieldType) {
+            switch(fieldType) {
+                case 'marketplace':
+                    const marketplaceValue = document.getElementById('common_marketplace').value;
+                    document.querySelectorAll('.marketplace-select').forEach(select => {
+                        select.value = marketplaceValue;
+                    });
+                    break;
+                case 'estado':
+                    const estadoValue = document.getElementById('common_estado').value;
+                    estadoSelects.forEach(select => {
+                        select.value = estadoValue;
+                        // Disparar el evento change para actualizar la visibilidad de los campos de nota de crédito
+                        select.dispatchEvent(new Event('change'));
+                    });
+                    toggleCommonNotaCredito(estadoValue);
+                    break;
+                case 'fecha':
+                    const fechaValue = document.getElementById('common_fecha').value;
+                    document.querySelectorAll('.fecha-input').forEach(input => {
+                        input.value = fechaValue;
+                    });
+                    break;
+                case 'porcentaje':
+                    const porcentajeValue = document.getElementById('common_porcentaje').value;
+                    document.querySelectorAll('.porcentaje-input').forEach(input => {
+                        input.value = porcentajeValue;
+                    });
+                    break;
+                case 'nota_credito':
+                    const notaCreditoValue = document.getElementById('common_nota_credito').value;
+                    document.querySelectorAll('.nota-credito-input').forEach(input => {
+                        input.value = notaCreditoValue;
+                    });
+                    break;
+            }
+        };
+        
+        function toggleCommonNotaCredito(estadoValue) {
+            if (['normal', 'mal_estado'].includes(estadoValue)) {
+                commonNotaCreditoContainer.style.display = 'block';
+            } else {
+                commonNotaCreditoContainer.style.display = 'none';
+                document.getElementById('common_nota_credito').value = '';
+            }
+        }
+        
+        // Configurar los campos de nota de crédito individuales
+        estadoSelects.forEach(select => {
+            const index = select.getAttribute('data-index');
+            const notaCreditoContainer = document.getElementById(`nota_credito_container_${index}`);
+            const notaCreditoInput = document.getElementById(`producto_${index}-nota_credito`);
+            
+            function toggleNotaCredito() {
+                const estadoValue = select.value;
+                
+                if (['normal', 'mal_estado'].includes(estadoValue)) {
+                    notaCreditoContainer.style.display = 'block';
+                    notaCreditoInput.setAttribute('required', 'required');
+                } else {
+                    notaCreditoContainer.style.display = 'none';
+                    notaCreditoInput.removeAttribute('required');
+                    if (['pendiente_buen', 'pendiente_mal', 'otro'].includes(estadoValue)) {
+                        notaCreditoInput.value = '';
+                    }
+                }
+            }
+            
+            // Ejecutar al cargar la página
+            toggleNotaCredito();
+            
+            // Ejecutar cuando cambie el select
+            select.addEventListener('change', toggleNotaCredito);
+        });
+        
+        // Configurar el campo de nota de crédito común
+        commonEstadoSelect.addEventListener('change', function() {
+            toggleCommonNotaCredito(this.value);
+        });
+        
+        // Prevenir múltiples envíos del formulario
+        document.querySelector('form').addEventListener('submit', function(event) {
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
+        });
+    });
+</script>
+{% endblock %}

@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
+{% load crispy_forms_tags %}
 
 {% block title %}Resultados de Búsqueda - Sistema de Devoluciones{% endblock %}
 
 {% block content %}
 <div class="mb-3">
     <a href="{% url 'index' %}" class="btn btn-secondary">
-        Volver a la búsqueda
+        <i class="fas fa-arrow-left me-2"></i>Volver a la búsqueda
     </a>
 </div>
 
@@ -21,37 +22,80 @@
         {% endif %}
         
         <h5 class="mb-3">Productos:</h5>
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th>Código</th>
-                        <th>Descripción</th>
-                        <th>Cantidad</th>
-                        <th>Precio</th>
-                        <th>Total</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for producto in documento.productos %}
+        <form method="post" action="{% url 'registrar_devolucion_multiple' %}">
+            {% csrf_token %}
+            <input type="hidden" name="numero_boleta" value="{{ documento.numero_boleta }}">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
                         <tr>
-                            <td>{{ producto.codigo }}</td>
-                            <td>{{ producto.descripcion }}</td>
-                            <td>{{ producto.cantidad }}</td>
-                            <td>${{ producto.precio_unitario }}</td>
-                            <td>${{ producto.total }}</td>
-                            <td>
-                                <a href="{% url 'registrar_devolucion' numero_boleta=documento.numero_boleta id_producto=producto.id %}" 
-                                   class="btn btn-sm btn-primary">
-                                    Devolver
-                                </a>
-                            </td>
+                            <th>Seleccionar</th>
+                            <th>Código</th>
+                            <th>Descripción</th>
+                            <th>Cantidad</th>
+                            <th>Precio</th>
+                            <th>Total</th>
+                            <th>Acción</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        {% for producto in documento.productos %}
+                            <tr>
+                                <td>
+                                    {% if not producto.ya_devuelto %}
+                                        <input type="checkbox" name="productos_seleccionados" value="{{ producto.id }}" class="form-check-input">
+                                    {% endif %}
+                                </td>
+                                <td>{{ producto.codigo }}</td>
+                                <td>{{ producto.descripcion }}</td>
+                                <td>{{ producto.cantidad }}</td>
+                                <td>${{ producto.precio_unitario }}</td>
+                                <td>${{ producto.total }}</td>
+                                <td>
+                                    {% if producto.ya_devuelto %}
+                                        <span class="badge bg-warning">Ya devuelto</span>
+                                    {% else %}
+                                        <a href="{% url 'registrar_devolucion' numero_boleta=documento.numero_boleta id_producto=producto.id %}" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-undo me-1"></i>Devolver
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3">
+                <button type="submit" class="btn btn-success" id="btn-devolucion-multiple">
+                    <i class="fas fa-undo-alt me-1"></i>Devolver Seleccionados
+                </button>
+            </div>
+        </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Deshabilitar el botón si no hay productos seleccionados
+        const btnDevolucionMultiple = document.getElementById('btn-devolucion-multiple');
+        const checkboxes = document.querySelectorAll('input[name="productos_seleccionados"]');
+        
+        // Función para actualizar el estado del botón
+        function updateButtonState() {
+            const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+            btnDevolucionMultiple.disabled = !anyChecked;
+        }
+        
+        // Inicializar estado del botón
+        updateButtonState();
+        
+        // Actualizar en cada cambio
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateButtonState);
+        });
+    });
+</script>
 {% endblock %}

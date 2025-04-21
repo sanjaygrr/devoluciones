@@ -10,4 +10,6 @@ urlpatterns = [
     path('nota-credito/<int:pk>/', views.agregar_nota_credito, name='agregar_nota_credito'),
     path('exportar/', views.exportar_excel, name='exportar_excel'),
     path('fix-database/', views.fix_database, name='fix_database'),
+    path('registrar-multiple/', views.registrar_devolucion_multiple, name='registrar_devolucion_multiple'),
+    path('confirmar-multiple/', views.confirmar_devolucion_multiple, name='confirmar_devolucion_multiple'),
 ]

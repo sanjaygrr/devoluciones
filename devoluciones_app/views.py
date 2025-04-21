@@ -68,6 +68,17 @@ def buscar_boleta(request):
         # Procesar el primer documento encontrado
         documento = bsale_api.procesar_documento(resultado["items"][0])
         
+        # Verificar productos ya devueltos
+        for producto in documento["productos"]:
+            # Buscar si este producto ya tiene una devolución para esta boleta
+            devoluciones_existentes = Devolucion.objects.filter(
+                numero_boleta=numero_boleta,
+                codigo_producto=producto["codigo"]
+            ).count()
+            
+            # Marcar el producto como ya devuelto
+            producto["ya_devuelto"] = devoluciones_existentes > 0
+        
         return render(request, 'devoluciones_app/resultados_busqueda.html', {
             'documento': documento,
             'form': form
@@ -76,7 +87,6 @@ def buscar_boleta(request):
         print(f"Error al buscar boleta: {str(e)}")
         messages.error(request, f"Error al buscar la boleta: {str(e)}")
         return redirect('index')
-
 @login_required
 def registrar_devolucion(request, numero_boleta, id_producto):
     """Registrar devolución de un producto específico."""
@@ -347,3 +357,108 @@ def fix_database(request):
         return HttpResponse(f"<h1>Resultado:</h1><p>{resultado}</p>")
     except Exception as e:
         return HttpResponse(f"<h1>Error general:</h1><p>{str(e)}</p>")
+    
+
+@login_required
+def registrar_devolucion_multiple(request):
+    """Registrar devolución de múltiples productos."""
+    if request.method != 'POST':
+        return redirect('index')
+    
+    numero_boleta = request.POST.get('numero_boleta')
+    productos_seleccionados = request.POST.getlist('productos_seleccionados')
+    
+    if not numero_boleta or not productos_seleccionados:
+        messages.error(request, "No se ha seleccionado ningún producto para devolver.")
+        return redirect('index')
+    
+    # Buscar la boleta nuevamente para confirmar
+    bsale_api = BsaleAPI()
+    resultado = bsale_api.buscar_por_numero_boleta(numero_boleta)
+    
+    if not resultado or "items" not in resultado or not resultado["items"]:
+        messages.error(request, "No se pudo recuperar la información de la boleta.")
+        return redirect('index')
+    
+    documento = bsale_api.procesar_documento(resultado["items"][0])
+    
+    # Buscar el número de orden en el documento
+    numero_orden = ""
+    if "references" in resultado["items"][0] and "items" in resultado["items"][0]["references"]:
+        for ref in resultado["items"][0]["references"]["items"]:
+            if ref.get("reason") == "Orden de Compra":
+                numero_orden = ref.get("number", "")
+                break
+    
+    # Filtrar solo los productos seleccionados
+    productos_a_devolver = []
+    for p in documento["productos"]:
+        if str(p["id"]) in productos_seleccionados:
+            p['numero_orden'] = numero_orden
+            productos_a_devolver.append(p)
+    
+    if not productos_a_devolver:
+        messages.error(request, "No se encontraron los productos seleccionados.")
+        return redirect('index')
+    
+    # Guardar en sesión para usar en el formulario
+    request.session['productos_a_devolver'] = productos_a_devolver
+    request.session['numero_boleta'] = numero_boleta
+    
+    return redirect('confirmar_devolucion_multiple')
+
+@login_required
+def confirmar_devolucion_multiple(request):
+    """Confirmar y registrar devoluciones múltiples."""
+    productos_a_devolver = request.session.get('productos_a_devolver', [])
+    numero_boleta = request.session.get('numero_boleta', '')
+    
+    if not productos_a_devolver or not numero_boleta:
+        messages.error(request, "No hay productos para devolver o la sesión ha expirado.")
+        return redirect('index')
+    
+    if request.method == 'POST':
+        # Procesar formulario para cada producto
+        for i, producto in enumerate(productos_a_devolver):
+            prefix = f"producto_{i}"
+            form_data = {}
+            
+            # Recopilar datos del formulario con prefijo
+            for key, value in request.POST.items():
+                if key.startswith(prefix):
+                    field_name = key.replace(f"{prefix}-", "")
+                    form_data[field_name] = value
+            
+            # Crear formulario con los datos
+            form = DevolucionForm(form_data)
+            if form.is_valid():
+                devolucion = form.save(commit=False)
+                # Asignar el usuario actual
+                devolucion.usuario_registro = request.user
+                # Si el estado es normal o mal_estado, se guarda con fecha de cierre
+                if devolucion.estado_devolucion in ['normal', 'mal_estado']:
+                    devolucion.fecha_cierre = timezone.now()
+                devolucion.save()
+            else:
+                # Si hay errores, mostrar y volver al formulario
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"Producto {i+1} - {form.fields[field].label}: {error}")
+                return render(request, 'devoluciones_app/confirmar_devolucion_multiple.html', {
+                    'productos': productos_a_devolver,
+                    'numero_boleta': numero_boleta
+                })
+        
+        # Limpiar sesión
+        if 'productos_a_devolver' in request.session:
+            del request.session['productos_a_devolver']
+        if 'numero_boleta' in request.session:
+            del request.session['numero_boleta']
+        
+        messages.success(request, f"{len(productos_a_devolver)} productos devueltos correctamente.")
+        return redirect('historial_devoluciones')
+    
+    return render(request, 'devoluciones_app/confirmar_devolucion_multiple.html', {
+        'productos': productos_a_devolver,
+        'numero_boleta': numero_boleta
+    })
